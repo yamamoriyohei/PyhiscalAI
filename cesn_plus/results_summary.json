@@ -1,0 +1,31 @@
+{
+  "experiment": "Reservoir x DiT hybrid for VLA System1, on Reach and Stack",
+  "reach_task": {
+    "task": "Isaac-Reach-Franka-v0",
+    "demos": "self PPO, 64 traj x 300 x 32",
+    "results": {
+      "PPO":      {"train_sec": 585.88, "error_cm": 1.03, "success_pct": 100.0},
+      "DiT":      {"train_sec": 97.90,  "error_cm": 1.56, "success_pct": 100.0, "latency_ms": 16.13, "params": 1044743},
+      "CESN_DiT": {"train_sec": 83.77,  "error_cm": 1.89, "success_pct": 100.0, "latency_ms": 12.09, "params": 1288455},
+      "CNMP":     {"train_sec": 47.98,  "error_cm": 2.32, "success_pct": 92.0},
+      "CESN_plus":{"train_sec": 2.77,   "error_cm": 3.84, "success_pct": 92.0, "trainable_params": 7007}
+    }
+  },
+  "stack_task": {
+    "task": "Isaac-Stack-Cube-Franka-IK-Rel-v0",
+    "demos": "NVIDIA Manipulation-Augmented, 1000 traj x 200 x 94",
+    "results": {
+      "CESN_plus":  {"train_sec": 9.37,   "fit": 1.59, "grasp_1": 7.8,  "stack_1": 0.0,  "grasp_2": 3.1,  "success": 0.0, "n_train": 300},
+      "CESN_DiT":   {"train_sec": 240.28, "fit": 1.68, "grasp_1": 65.6, "stack_1": 6.2,  "grasp_2": 6.2,  "success": 0.0, "latency_ms": 13.28, "params": 5132807},
+      "DiT":        {"train_sec": 275.80, "fit": 1.65, "grasp_1": 98.4, "stack_1": 15.6, "grasp_2": 1.6,  "success": 0.0, "latency_ms": 18.31, "params": 4104199},
+      "DiT_Hist_A": {"train_sec": 315.82, "fit": 1.56, "grasp_1": 92.2, "stack_1": 25.0, "grasp_2": 21.9, "success": 0.0, "latency_ms": 26.93, "params": 4301831, "hist_k": 16}
+    }
+  },
+  "key_findings": [
+    "Reach simple: all 92-100%, CESN+ trains 35x faster than DiT",
+    "Stack complex: pure RC fails (grasp_1 7.8%); full-replace CESN-DiT hurts DiT core (65.6%)",
+    "Plan A (keep DiT cross-attn core + add reservoir history token, K=16) dominates stage transitions: stack_1 25.0% (vs DiT 15.6%), grasp_2 21.9% (vs DiT 1.6%), best fit 1.56",
+    "Conclusion: do not replace DiT core; ADD reservoir-compressed history as auxiliary cross-attention token. Helps long-horizon multi-stage tasks.",
+    "Tradeoff: Plan A latency 26.93ms (reservoir K-step loop), highest; future work to optimize"
+  ]
+}
